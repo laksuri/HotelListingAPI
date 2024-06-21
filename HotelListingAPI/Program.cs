@@ -1,4 +1,5 @@
 using HotelListingAPI.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,10 @@ builder.Services.AddDbContext<HotelDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
+builder.Services.AddIdentityCore<APIUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<HotelDbContext>();
+
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
