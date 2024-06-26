@@ -1,4 +1,7 @@
+using HotelListingAPI.Config;
+using HotelListingAPI.Contracts;
 using HotelListingAPI.Data;
+using HotelListingAPI.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -19,6 +22,10 @@ builder.Services.AddIdentityCore<APIUser>()
     .AddEntityFrameworkStores<HotelDbContext>();
 
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
+builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
+builder.Services.AddScoped<IAuthManager,AuthManager>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -26,6 +33,7 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
+builder.Services.AddAutoMapper(typeof(MapperConfig));
 builder.Host.UseSerilog((context, lc) =>
 {
     lc.WriteTo.Console().ReadFrom.Configuration(context.Configuration);
