@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelListingAPI.Data;
 using AutoMapper;
 using HotelListingAPI.Contracts;
 using HotelListingAPI.Model.Country;
 using Microsoft.AspNetCore.Authorization;
+using HotelListingAPI.Exception;
 
 namespace HotelListingAPI.Controllers
 {
@@ -44,7 +40,7 @@ namespace HotelListingAPI.Controllers
 
             if (country == null)
             {
-                return NotFound();
+                throw new NotFoundException(nameof(GetCountry), id);
             }
 
             return country;
@@ -66,7 +62,7 @@ namespace HotelListingAPI.Controllers
                 var country= await _countriesRepository.GetAsync(coutryDto.Id);
                 if(country==null)
                 {
-                    return NotFound("No country exists");
+                    throw new NotFoundException(nameof(PutCountry), coutryDto.Id);
                 }
                 _mapper.Map(coutryDto, country);
                 await _countriesRepository.UpdateAsync(country);
@@ -107,7 +103,7 @@ namespace HotelListingAPI.Controllers
             
             if (country == null)
             {
-                return NotFound();
+                throw new NotFoundException(nameof(DeleteCountry), id);
             }
 
             await _countriesRepository.DeleteAsync(id);

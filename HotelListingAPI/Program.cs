@@ -1,6 +1,7 @@
 using HotelListingAPI.Config;
 using HotelListingAPI.Contracts;
 using HotelListingAPI.Data;
+using HotelListingAPI.Middleware;
 using HotelListingAPI.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -70,7 +71,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
