@@ -23,7 +23,9 @@ builder.Services.AddDbContext<HotelDbContext>(options =>
 });
 builder.Services.AddIdentityCore<APIUser>()
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<HotelDbContext>();
+    .AddTokenProvider<DataProtectorTokenProvider<APIUser>>("HotelListingAPI")
+    .AddEntityFrameworkStores<HotelDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));

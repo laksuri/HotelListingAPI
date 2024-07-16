@@ -36,7 +36,8 @@ namespace HotelListingAPI.Repository
             return new AuthResponseDto()
             {
                 Token = token,
-                UserId = _user.Id
+                UserId = _user.Id,
+                RefreshToken=await CreateRefreshToken()
             };
         }
 
@@ -88,6 +89,40 @@ namespace HotelListingAPI.Repository
             }
 
             return result.Errors;
+        }
+
+        public async Task<string> CreateRefreshToken()
+        {
+            await _usermanager.RemoveAuthenticationTokenAsync(_user, "HotelListingAPI", "RefreshToken");
+            var newRefreshToken = await _usermanager.GenerateUserTokenAsync(_user, "HotelListingAPI", "RefreshToken");
+            var result = await _usermanager.SetAuthenticationTokenAsync(_user, "HotelListingAPI", "RefreshToken", newRefreshToken);
+            return newRefreshToken;
+        }
+
+        public async Task<AuthResponseDto> VerifyRefreshToken(AuthResponseDto request)
+        {
+            var jwtSecurityTokenHandler=new JwtSecurityTokenHandler();
+            var tokenContent = jwtSecurityTokenHandler.ReadJwtToken(request.Token);
+            var userName = tokenContent.Claims.ToList().FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value;
+            _user = await _usermanager.FindByEmailAsync(userName);
+
+            if(_user==null ||_user.Id!=request.UserId)
+            {
+                return null;
+            }
+            var isValidRefreshToken = await _usermanager.VerifyUserTokenAsync(_user, "HotelListingAPI", "RefreshToken", request.RefreshToken);
+            if(isValidRefreshToken)
+            {
+                var token = await GenerateToken();
+                return new AuthResponseDto
+                {
+                    Token = token,
+                    RefreshToken = await CreateRefreshToken(),
+                    UserId = _user.Id
+                };
+            }
+            await _usermanager.UpdateSecurityStampAsync(_user);
+            return null;
         }
     }
 }
