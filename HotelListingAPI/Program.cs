@@ -2,9 +2,13 @@ using HotelListingAPI.Config;
 using HotelListingAPI.Contracts;
 using HotelListingAPI.Data;
 using HotelListingAPI.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -34,6 +38,23 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 builder.Services.AddAutoMapper(typeof(MapperConfig));
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options=> {
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ClockSkew = TimeSpan.Zero,
+        ValidateLifetime=true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
+        IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTSettings:Key"])),
+        ValidAudience = builder.Configuration["JWTSettings:Audience"]
+    };
+});
 builder.Host.UseSerilog((context, lc) =>
 {
     lc.WriteTo.Console().ReadFrom.Configuration(context.Configuration);
@@ -51,6 +72,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
