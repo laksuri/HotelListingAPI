@@ -58,6 +58,12 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["JWTSettings:Audience"]
     };
 });
+builder.Services.AddResponseCaching(options =>
+{
+    options.MaximumBodySize = 1024;
+    options.UseCaseSensitivePaths = true;
+
+});
 builder.Host.UseSerilog((context, lc) =>
 {
     lc.WriteTo.Console().ReadFrom.Configuration(context.Configuration);
@@ -74,6 +80,20 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+
+app.UseResponseCaching();
+app.Use(async (context, next) =>
+{
+context.Response.GetTypedHeaders().CacheControl =
+new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+{
+    Public = true,
+    MaxAge = TimeSpan.FromSeconds(10),
+};
+    context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
+        new string[] { "Accept-Encoding" };
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
