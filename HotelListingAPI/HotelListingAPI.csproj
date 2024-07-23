@@ -22,6 +22,8 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
+    <PackageReference Include="Microsoft.AspNetCore.MVC.Versioning" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.MVC.Versioning.APIExplorer" Version="5.0.0" />
   </ItemGroup>
 
 </Project>
