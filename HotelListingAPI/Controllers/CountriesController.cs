@@ -6,29 +6,37 @@ using HotelListingAPI.Contracts;
 using HotelListingAPI.Model.Country;
 using Microsoft.AspNetCore.Authorization;
 using HotelListingAPI.Exception;
+using HotelListingAPI.Model;
 
 namespace HotelListingAPI.Controllers
 {
     [Route("api/v{version:apiVersion}/countries")]
-    [ApiVersion("1.0",Deprecated =true)]
+    [ApiVersion("1.0", Deprecated = true)]
     [ApiController]
     public class CountriesController : ControllerBase
     {
         private readonly IMapper _mapper;
         private readonly ICountriesRepository _countriesRepository;
 
-        public CountriesController(IMapper mapper,ICountriesRepository countriesRepository)
+        public CountriesController(IMapper mapper, ICountriesRepository countriesRepository)
         {
             _mapper = mapper;
-            _countriesRepository=countriesRepository;
+            _countriesRepository = countriesRepository;
         }
 
         // GET: api/Countries
-        [HttpGet]
+        [HttpGet("GetAll")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Country>>> GetCountries()
         {
             return await _countriesRepository.GetAllAsync();
+        }
+        [HttpGet("GetPagedCountries")]
+        [Authorize]
+        public async Task<ActionResult<PagedResult<GetCountryDto>>> GetPagedCountries([FromQuery]QueryParameter parameter)
+        {
+            var pagedCountriesResult = await _countriesRepository.GetAllPagedResultsAsync<GetCountryDto>(parameter);
+            return Ok(pagedCountriesResult);
         }
 
         // GET: api/Countries/5

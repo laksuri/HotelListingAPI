@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Eventing.Reader;
+﻿using HotelListingAPI.Model;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
 
 namespace HotelListingAPI.Contracts
@@ -7,6 +8,7 @@ namespace HotelListingAPI.Contracts
     {
         Task<T> GetAsync(int id);
         Task<List<T>> GetAllAsync();
+        Task<PagedResult<TResult>> GetAllPagedResultsAsync<TResult>(QueryParameter queryParameter);
         Task<T> CreateAsync(T entity);
         Task<T> UpdateAsync(T entity);
         Task DeleteAsync(int id);
