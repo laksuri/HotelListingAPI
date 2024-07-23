@@ -7,6 +7,7 @@ using HotelListingAPI.Model.Country;
 using Microsoft.AspNetCore.Authorization;
 using HotelListingAPI.Exception;
 using HotelListingAPI.Model;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace HotelListingAPI.Controllers
 {
@@ -27,12 +28,14 @@ namespace HotelListingAPI.Controllers
         // GET: api/Countries
         [HttpGet("GetAll")]
         [Authorize]
+        [EnableQuery]
         public async Task<ActionResult<IEnumerable<Country>>> GetCountries()
         {
             return await _countriesRepository.GetAllAsync();
         }
         [HttpGet("GetPagedCountries")]
         [Authorize]
+        [EnableQuery]
         public async Task<ActionResult<PagedResult<GetCountryDto>>> GetPagedCountries([FromQuery]QueryParameter parameter)
         {
             var pagedCountriesResult = await _countriesRepository.GetAllPagedResultsAsync<GetCountryDto>(parameter);

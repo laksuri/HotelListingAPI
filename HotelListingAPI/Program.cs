@@ -10,6 +10,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+using Microsoft.AspNetCore.OData;
+using Microsoft.OData.ModelBuilder;
+using HotelListingAPI.Model;
+using HotelListingAPI.Model.Country;
+using System.Reflection.Emit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +23,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+
 var connectionString = builder.Configuration.GetConnectionString("HotelListingDbConnection");
 builder.Services.AddDbContext<HotelDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
+
 builder.Services.AddIdentityCore<APIUser>()
     .AddRoles<IdentityRole>()
     .AddTokenProvider<DataProtectorTokenProvider<APIUser>>("HotelListingAPI")
@@ -33,7 +41,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
 builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
 builder.Services.AddScoped<IAuthManager,AuthManager>();
-
+//CORS changes
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -41,7 +49,9 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
+//Configuration for automapper
 builder.Services.AddAutoMapper(typeof(MapperConfig));
+//Code for JWT access token validation
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,17 +69,19 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["JWTSettings:Audience"]
     };
 });
+//Changes to cache the respoinse for a maximum of 10s. 
 builder.Services.AddResponseCaching(options =>
 {
     options.MaximumBodySize = 1024;
     options.UseCaseSensitivePaths = true;
 
 });
+//Changes to use Serilog
 builder.Host.UseSerilog((context, lc) =>
 {
     lc.WriteTo.Console().ReadFrom.Configuration(context.Configuration);
 });
-
+//Add API Versioning
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = true;
@@ -80,10 +92,26 @@ builder.Services.AddApiVersioning(options =>
         new HeaderApiVersionReader("api-version"),
         new MediaTypeApiVersionReader("api-version"));
 });
+//Add versioning to swagger
 builder.Services.AddVersionedApiExplorer(options =>
 {
     options.SubstituteApiVersionInUrl = true;
     options.GroupNameFormat = "'v'VVV";
+});
+//OData changes
+//var odataModelBuilder = new ODataConventionModelBuilder();
+//odataModelBuilder.EntityType<PagedResult<GetCountryDto>>();
+//odataModelBuilder.EntitySet<GetCountryDto>("Items");
+
+//$expand=items($select=name)
+//$expand = items($filter = id eq 3)
+//$expand = items($filter = name eq 'Singapore'; $select = name)
+builder.Services.AddControllers().AddOData(options =>
+{
+    options.Select().Filter().OrderBy().Expand();
+    //.AddRouteComponents(
+    //"odata",
+    //odataModelBuilder.GetEdmModel());
 });
 var app = builder.Build();
 
